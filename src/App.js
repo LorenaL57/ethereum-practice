@@ -2,13 +2,20 @@ import "./App.css";
 import { useState } from "react";
 import { BrowserProvider } from "ethers";
 import Greeter from "./artifacts/contracts/Greeter.sol/Greeter.json";
+import Token from  "./artifacts/contracts/Token.sol/Token.json";
 
 // Update with the contract address logged out to the CLI when it was deployed
-const greeterAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const greeterAddress = "0x5B5144EE6517237AD68CB4cDFcdD8273D4187fF6";
+const tokenAddress = "0xC20BfcD3F714450372d5AA7A6e28a4843D4898Db";
+const PTtokenAddress = "0xc857DDe5eb0c190222D4D56Ff90BDE21434ED8E1";
+
+
 const ethers = require("ethers");
 function App() {
   // store greeting in local state
   const [greeting, setGreetingValue] = useState();
+  const [userAccount, setUserAccount] = useState()
+  const [amount, setAmount] = useState()
   // request access to the user's MetaMask account
   async function requestAccount() {
     await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -33,6 +40,17 @@ function App() {
     }
   }
 
+  async function getBalance() {
+    if (typeof window.ethereum !== 'undefined') {
+      const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      const provider = new BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(tokenAddress, Token.abi, provider)
+      const balance = await contract.balanceOf(account);
+      console.log("Balance: ", balance.toString());
+    }
+  }
+
+
   // call the smart contract, send an update
   async function setGreeting() {
     if (!greeting) return;
@@ -53,6 +71,19 @@ function App() {
     }
   }
 
+  async function sendCoins() {
+    if (typeof window.ethereum !== 'undefined') {
+      await requestAccount()
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(tokenAddress, Token.abi, signer);
+      const transation = await contract.transfer(userAccount, amount);
+      await transation.wait();
+      console.log(`${amount} Coins successfully sent to ${userAccount}`);
+    }
+  }
+
+
   return (
     <div className="App">
       <header className="App-header">
@@ -63,6 +94,11 @@ function App() {
           placeholder="Set greeting"
           value={greeting}
         />
+        <br />
+        <button onClick={getBalance}>Get Balance</button>
+        <button onClick={sendCoins}>Send Coins</button>
+        <input onChange={e => setUserAccount(e.target.value)} placeholder="Account ID" />
+        <input onChange={e => setAmount(e.target.value)} placeholder="Amount" />
       </header>
     </div>
   );

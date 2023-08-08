@@ -11,7 +11,17 @@ async function main() {
   const Greeter = await hre.ethers.getContractFactory("Greeter");
   const greeter = await Greeter.deploy("Hello World");
 
-  console.log(`contract successfully deployed to ${greeter.target}`);
+  const Token = await hre.ethers.getContractFactory("Token");
+  const token = await Token.deploy();
+
+  const PTToken = await hre.ethers.getContractFactory("PTToken");
+const ptToken = await PTToken.deploy("Practice Test Token", "PTT");
+
+  console.log(`greeter contract successfully deployed to ${greeter.target}`);
+  console.log(`token contract successfully deployed to ${token.target}`);
+  console.log(`ptToken contract successfully deployed to ${ptToken.target}`);
+
+
 
 }
 
